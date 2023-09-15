@@ -62,12 +62,6 @@ def generate_data(n):
         mus.append(generate_mu())
         sigmas.append(generate_sigma())
         R.append(generate_R())
-    return mus, sigmas, R
+    return [mus, sigmas, R]
 
 data = generate_data(n)
-
-print(data[0])
-print()
-print(data[1])
-print()
-print(data[2])
