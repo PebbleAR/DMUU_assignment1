@@ -74,6 +74,10 @@ np.mean(profit)
 CI[1]-CI[0]
 
 
+plt.hist(profit)
+plt.show()
+
+
 
 
 # D = np.array([norm.rvs(size = 3, loc = Data[0][i], scale = Data[1][i]) for i in range(3)])

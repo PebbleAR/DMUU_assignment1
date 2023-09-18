@@ -65,3 +65,8 @@ def generate_data(n):
     return [mus, sigmas, R]
 
 data = generate_data(n)
+
+## data
+# print(f'Expected item size: {data[0]}')
+# print(f'Standard deviation: {data[1]}')
+# print(f'Unit revenue: {data[2]}')
