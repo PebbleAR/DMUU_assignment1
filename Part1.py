@@ -5,11 +5,15 @@ import math
 
 np.random.seed(1)
 
+# Generate from uniform distribution
+def generate_uniform(size):
+    return uniform.rvs(size = size)
+
 # Generating mu
 def generate_mu():
     Y = 0
     while not 1 <= Y <= 10:
-        U = uniform.rvs(size = 1)
+        U = generate_uniform(1)
         Y = -10 * np.log(U)
     mu = 100 + 10 * Y
     return mu[0]
@@ -19,31 +23,26 @@ t_x = 2.0736
 
 def Beta_pdf(x):
     return 60 * x**2 *(1-x)**3
-    
+
 def generate_sigma():
     while True:
-        Y = uniform.rvs(size = 1)
-        U = uniform.rvs(size = 1)
-        if U <= Beta_pdf(Y)/t_x:
+        Y, U = generate_uniform(2)
+        if U < Beta_pdf(Y)/t_x:
             X = Y
+            sigma = 10 + 20 * X
             break
-    return X[0]
+    return sigma
 
 # Generating Unit revenue
 p1 = 1/3
 p2 = 1 - p1
 
-def generate_uniform():
-    U_1 = uniform.rvs(size = 1)
-    U_2 = uniform.rvs(size = 1)
-    return U_1, U_2
-
 def generate_X(p1):
-    U = generate_uniform()
-    if p1 < U[0][0]:
-        X = -(1/2)*math.log(U[1][0])
+    U1, U2 = generate_uniform(2)
+    if U1 < p1:
+        X = -(1/2)*math.log(U2)
     else:
-        X = U[1][0]
+        X = U2
     return X
 
 def generate_R():
@@ -68,5 +67,7 @@ data = generate_data(n)
 
 ## data
 # print(f'Expected item size: {data[0]}')
+# print()
 # print(f'Standard deviation: {data[1]}')
+# print()
 # print(f'Unit revenue: {data[2]}')
