@@ -29,7 +29,6 @@ def Monte_Carlo_1(runs, p, s, C):
     ## 1. Generate item sizes
     # The first seven items are in the knapsack, so we only have to generate 7 item sizes
     D = np.array([norm.rvs(size = runs, loc = Data[0][i], scale = Data[1][i]) for i in range(7)])
-    print(D)
     
     ## 2. In cases where the simulation yields negative item sizes, these values can be adjusted to 0.
     D[np.where(D<0)] = 0 
@@ -44,10 +43,11 @@ def Monte_Carlo_1(runs, p, s, C):
     
     return P
 
+
 def Monte_Carlo_pebble(runs, p, s, C):
     ## 1. Generate item sizes
     # The first seven items are in the knapsack, so we only have to generate 7 item sizes
-    D = np.array([norm.rvs(size = 3, loc = Data[0][i], scale = Data[1][i]) for i in range(7)])
+    D = np.array([norm.rvs(size = runs, loc = Data[0][i], scale = Data[1][i]) for i in range(7)])
 
     ## 2. In cases where the simulation yields negative item sizes, these values can be adjusted to 0.
     D[np.where(D<0)] = 0
@@ -68,17 +68,18 @@ def confidence_interval(profit):
     return [mean - Z_ALPHA*std/np.sqrt(len(profit)), mean + Z_ALPHA*std/np.sqrt(len(profit)) ]
 
 
-profit = Monte_Carlo_1(1, p, s, C)
+# profit = Monte_Carlo_1(2, p, s, C)
 
-# revenue, cost, profit = Monte_Carlo_pebble(320, p, s, C)
-# CI = confidence_interval(profit)
-# np.mean(profit)
+revenue, cost, profit = Monte_Carlo_pebble(50000, p, s, C)
+CI = confidence_interval(profit)
+np.mean(profit)
 
-# CI[1]-CI[0]
+CI[1]-CI[0]
 
-
-# plt.hist(profit)
-# plt.show()
+# Histogram of profits
+bins = [_ for _ in range(16000, 26500, 10)]
+plt.hist(profit, bins=bins)
+plt.show()
 
 
 
