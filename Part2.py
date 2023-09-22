@@ -1,36 +1,138 @@
+### PART 2.1
+
+#%% Initialization
 from Part1 import generate_data
 import numpy as np
 from scipy.stats import norm
+import matplotlib.pyplot as plt
 
-data = generate_data(15) #data[0]: mu, data[1]: sigma, data[2]: unit revenue
-n = 15
-x = np.ones(8)
-y = np.zeros(8)
-x = np.append(x,y)
-L = 30 * n      # table 2 article
-U = 120 * n     # table 2 article
-C = U           # read page 464 for argumentation of chosen values for the constants
-x[0] = (L+U)/(2*(U-L))
-p = 25
-s = 4
-c = 15
 
-print(x) #x_0 is additional item
-m = 100
-D =  [norm.rvs(size = m, loc = data[0][i], scale = data[1][i]) for i in range(7)]  #D_i contains m itemsizes of item i+1. 
+np.random.seed(1)
 
-revenuelist = []
-totalsizelist = []
-for j in range(m):
-    revenue = 0
-    total_itemsize = 0
-    for i in range(7):
-        revenue += D[i][j] * data[2][i] 
-        total_itemsize += D[i][j]
-    revenuelist.append(revenue)
-    totalsizelist.append(total_itemsize)
+n = 15          # Number of items
+p = 25          # Unit overflow cost
+s = 4           # Salvage value
+c = 15          # Unit capacity cost
 
-cost = [(totalsizelist[i] - (U+L)/2)*p  if (totalsizelist[i] - (U+L)/2 > 0) else (totalsizelist[i] - (U+L)/2)*s for i in range(m)]
-profit = [x[0] - x[1] for x in zip(revenuelist, cost)]
+## Table 2, page 476 on Capacity level
+L = 30 * n
+U = 120 * n
 
-print(profit)
+# Generate data
+Data = generate_data(15)
+mu = np.array(Data[0])
+sigma = np.array(Data[1])
+revenue = np.array(Data[2])
+
+
+#%% Monte Carlo simulation of initial solution
+C = (U + L)/2
+
+def Monte_Carlo_1(runs, p, s, C):
+    ## 1. Generate item sizes
+    # The first seven items are in the knapsack, so we only have to generate 7 item sizes
+    D = np.array([norm.rvs(size = runs, loc = Data[0][i], scale = Data[1][i]) for i in range(7)])
+    
+    ## 2. In cases where the simulation yields negative item sizes, these values can be adjusted to 0.
+    D[np.where(D<0)] = 0 
+    
+    ## 3. Calculate the revenue, cost, and total profit.
+    # Unit revenue
+    R = np.array(Data[2][0:7]) 
+    # See page 463 of the article for rewriting of total profit
+    
+    P_i = np.sum(D.T*(R-s), axis = 1) - (p-s)*(np.sum(D,axis = 0)-C)*(np.sum(D,axis = 0)>C) + s*C
+    P = np.sum(P_i)/runs
+    
+    return P
+
+def Monte_Carlo_pebble(runs, p, s, C):
+    ## 1. Generate item sizes
+    # The first seven items are in the knapsack, so we only have to generate 7 item sizes
+    D = np.array([norm.rvs(size = runs, loc = Data[0][i], scale = Data[1][i]) for i in range(7)])
+
+    ## 2. In cases where the simulation yields negative item sizes, these values can be adjusted to 0.
+    D[np.where(D<0)] = 0
+
+    ## 3. Calculate the revenue, cost, and total profit.
+    R = np.array(Data[2][0:7]) # unit revenue
+    revenue = np.matmul(D.T, R)  # total revenue (revenue[i] is the revenue of one run)
+    total_size = np.sum(D, axis=0) # The item sizes of items together (total_size[i] is the total size of one run)
+    remaining_capacity = C - total_size
+    cost = np.where(remaining_capacity > 0, -s*remaining_capacity, p*remaining_capacity) # if the remaining capcity is positive, we use the salvage value otherwise the cost value p
+    profit = revenue - cost
+    return revenue, cost, profit
+
+def confidence_interval(profit):
+    mean = np.mean(profit)
+    std = np.std(profit)
+    Z_ALPHA = 1.960
+    return [mean - Z_ALPHA*std/np.sqrt(len(profit)), mean + Z_ALPHA*std/np.sqrt(len(profit)) ]
+
+### Determining CI 
+# Note that in order to half the confidence interval, one needs to use 4*n runs instead of n. 
+revenue, cost, profit = Monte_Carlo_pebble(5, p, s, C) 
+CI = confidence_interval(profit)
+CI[1]-CI[0] # gap is about 30, so we need to half the interval at least 5 times to get a gap of 1. This means that we need 5120 runs. 
+
+revenue, cost, profit = Monte_Carlo_pebble(5120, p, s, C)
+CI = confidence_interval(profit)
+CI[1]-CI[0] # indeed the gap is smaller than 1. 
+np.mean(profit)
+### plot histogram
+plt.hist(profit, 50)
+plt.show()
+
+### standard normal loss function
+### ???
+
+### Part 2.2
+### greedy algorithm: if the cost is negative in 10 instances, add the next item.  
+def Monte_Carlo_2_pebble(runs, p, s):
+    L = 30 * 15
+    U = 120 * 15
+    nr_items = 0
+    cost_negative = 1
+    while cost_negative:
+        nr_items +=1
+        ## 1. Generate item sizes
+        # The first seven items are in the knapsack, so we only have to generate 7 item sizes
+        D = np.array([norm.rvs(size = 10, loc = Data[0][i], scale = Data[1][i]) for i in range(nr_items)])
+
+        ## 2. In cases where the simulation yields negative item sizes, these values can be adjusted to 0.
+        D[np.where(D<0)] = 0
+
+        ## 3. Calculate the cost 
+        total_size = np.sum(D, axis=0) # The item sizes of items together (total_size[i] is the total size of one run)
+        remaining_capacity = C - total_size
+        cost = np.where(remaining_capacity > 0, -s*remaining_capacity, p*remaining_capacity) # if the remaining capcity is positive, we use the salvage value otherwise the cost value p
+        positive_costs = np.where(cost > 0, 1, 0)
+        
+        if sum(positive_costs) >= 1 or nr_items == 15:
+            cost_negative = 0
+            
+
+    nr_items -= 1 #we select the number of items, where the cost were not negative. 
+    print("Number of items:", nr_items)
+
+    D = np.array([norm.rvs(size = runs, loc = Data[0][i], scale = Data[1][i]) for i in range(nr_items)])
+
+    ## 2. In cases where the simulation yields negative item sizes, these values can be adjusted to 0.
+    D[np.where(D<0)] = 0
+
+    ## 3. Calculate the revenue, cost, and total profit.
+    R = np.array(Data[2][0:nr_items]) # unit revenue
+    revenue = np.matmul(D.T, R)  # total revenue (revenue[i] is the revenue of one run)
+    total_size = np.sum(D, axis=0) # The item sizes of items together (total_size[i] is the total size of one run)
+    remaining_capacity = C - total_size
+    cost = np.where(remaining_capacity > 0, -s*remaining_capacity, p*remaining_capacity) # if the remaining capcity is positive, we use the salvage value otherwise the cost value p
+    profit = revenue - cost
+    return revenue, cost, profit
+
+revenue, cost, profit = Monte_Carlo_2_pebble(10240, p, s, C)
+CI = confidence_interval(profit)
+CI[1]-CI[0] # indeed the gap is smaller than 1. 
+np.mean(profit)
+### plot histogram
+plt.hist(profit, 50)
+plt.show()
