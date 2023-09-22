@@ -160,3 +160,20 @@ np.mean(profit)
 plt.hist(profit, 50)
 plt.show()
 
+## Compare the 'initial solution' with the 'improved solution'
+
+def CI_diff_mean_profits(runs):
+    diff_profits = []
+    for _ in range(runs):
+        sol_initial = Monte_Carlo_pebble(10240, p, s, C)
+        mean_prof_in = np.mean(sol_initial[2])
+
+        sol_improved = Monte_Carlo_2_pebble(10240, p, s, C)
+        mean_prof_imp = np.mean(sol_improved[2])
+
+        diff_profits.append(mean_prof_imp - mean_prof_in)
+
+    return confidence_interval(diff_profits)
+
+CI_diff_mean_prof = CI_diff_mean_profits(100)
+print(CI_diff_mean_prof)
