@@ -60,7 +60,7 @@ def Monte_Carlo_pebble(runs, p, s, C):
     total_size = np.sum(D, axis=0) # The item sizes of items together (total_size[i] is the total size of one run)
     remaining_capacity = C - total_size
     cost = np.where(remaining_capacity > 0, -s*remaining_capacity, p*remaining_capacity) # if the remaining capcity is positive, we use the salvage value otherwise the cost value p
-    profit = revenue - cost
+    profit = revenue - cost                                                              # NOTE: add cost for capacity
     return revenue, cost, profit
 
 def confidence_interval(profit):
@@ -71,11 +71,11 @@ def confidence_interval(profit):
 
 ### Determining CI 
 # Note that in order to half the confidence interval, one needs to use 4*n runs instead of n. 
-revenue, cost, profit = Monte_Carlo_pebble(5, p, s, C) 
+rev, cost, profit = Monte_Carlo_pebble(5, p, s, C) 
 CI = confidence_interval(profit)
 CI[1]-CI[0] # gap is about 30, so we need to half the interval at least 5 times to get a gap of 1. This means that we need 5120 runs. 
 
-revenue, cost, profit = Monte_Carlo_pebble(5120, p, s, C)
+rev, cost, profit = Monte_Carlo_pebble(5120, p, s, C)
 CI = confidence_interval(profit)
 CI[1]-CI[0] # indeed the gap is smaller than 1. 
 np.mean(profit)
@@ -83,12 +83,20 @@ np.mean(profit)
 plt.hist(profit, 50)
 plt.show()
 
-### standard normal loss function
-### ???
 
+
+### standard normal loss function
+
+## Calculate the true objective function.
+def loss_function_normal(C,mu,sigma):
+    z = (C - mu)/sigma
+    return sigma*(norm(0,1).pdf(z) - z + z*norm(0,1).cdf(z))
+    
+true_profit = np.sum((revenue[0:7]-s)*mu[0:7])-(p-s)*loss_function_normal(C,np.sum(mu[0:7]),np.sum(sigma[0:7])) + s*C
+true_profit
 ### Part 2.2
 ### greedy algorithm: if the cost is negative in 10 instances, add the next item.  
-def Monte_Carlo_2_pebble(runs, p, s):
+def Monte_Carlo_2_pebble(runs, p, s, C):
     L = 30 * 15
     U = 120 * 15
     nr_items = 0
@@ -129,7 +137,7 @@ def Monte_Carlo_2_pebble(runs, p, s):
     profit = revenue - cost
     return revenue, cost, profit
 
-revenue, cost, profit = Monte_Carlo_2_pebble(10240, p, s, C)
+rev, cost, profit = Monte_Carlo_2_pebble(10240, p, s, C)
 CI = confidence_interval(profit)
 CI[1]-CI[0] # indeed the gap is smaller than 1. 
 np.mean(profit)
