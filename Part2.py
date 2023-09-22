@@ -60,7 +60,9 @@ def Monte_Carlo_pebble(runs, p, s, C):
     total_size = np.sum(D, axis=0) # The item sizes of items together (total_size[i] is the total size of one run)
     remaining_capacity = C - total_size
     cost = np.where(remaining_capacity > 0, -s*remaining_capacity, p*remaining_capacity) # if the remaining capcity is positive, we use the salvage value otherwise the cost value p
-    profit = revenue - cost                                                              # NOTE: add cost for capacity
+    capacity_cost = C*c
+    cost = [cost[i] + capacity_cost for i in range(len(cost))]
+    profit = revenue - cost                                                           # NOTE: add cost for capacity
     return revenue, cost, profit
 
 def confidence_interval(profit):
@@ -96,16 +98,19 @@ true_profit = np.sum((revenue[0:7]-s)*mu[0:7])-(p-s)*loss_function_normal(C,np.s
 true_profit
 ### Part 2.2
 ### greedy algorithm: if the cost is negative in 10 instances, add the next item.  
-def Monte_Carlo_2_pebble(runs, p, s, C):
+def Monte_Carlo_2_pebble(runs, p, s, C, revenue):
     L = 30 * 15
     U = 120 * 15
-    nr_items = 0
-    cost_negative = 1
-    while cost_negative:
-        nr_items +=1
+    x = [0 for _ in range(15)]
+    item = np.argmax(revenue) # Select item with highest unit revenue
+    x[item] = 1
+    revenue[item] = -1 # Set revenue to -1, indicating that x[item] has been added to the knapsack. 
+    go = 1
+    prev_cost =100000000
+    while go:
         ## 1. Generate item sizes
         # The first seven items are in the knapsack, so we only have to generate 7 item sizes
-        D = np.array([norm.rvs(size = 10, loc = Data[0][i], scale = Data[1][i]) for i in range(nr_items)])
+        D = np.array([norm.rvs(size = 10, loc = Data[0][i], scale = Data[1][i]) for i in range(15) if x[i] == 1])
 
         ## 2. In cases where the simulation yields negative item sizes, these values can be adjusted to 0.
         D[np.where(D<0)] = 0
@@ -114,33 +119,44 @@ def Monte_Carlo_2_pebble(runs, p, s, C):
         total_size = np.sum(D, axis=0) # The item sizes of items together (total_size[i] is the total size of one run)
         remaining_capacity = C - total_size
         cost = np.where(remaining_capacity > 0, -s*remaining_capacity, p*remaining_capacity) # if the remaining capcity is positive, we use the salvage value otherwise the cost value p
-        positive_costs = np.where(cost > 0, 1, 0)
+        capacity_cost = C*c
+        cost = np.array([cost[i] + capacity_cost for i in range(np.size(cost))])
+        new_cost = max(cost)
         
-        if sum(positive_costs) >= 1 or nr_items == 15:
-            cost_negative = 0
+        if new_cost > prev_cost or sum(x) == 15: #We are making costs or we added all items, so we stop
+            go = 0
+            if new_cost < prev_cost:
+                x[item] = 0     #remove item from list, since previous solution was better. 
+
+        if go:
+            item = np.argmax(revenue) # Select next item with highest unit revenue
+            x[item] = 1
+            revenue[item] = -1 # Set revenue to -1, indicating that x[item] has been added to the knapsack. 
             
-
-    nr_items -= 1 #we select the number of items, where the cost were not negative. 
-    print("Number of items:", nr_items)
-
-    D = np.array([norm.rvs(size = runs, loc = Data[0][i], scale = Data[1][i]) for i in range(nr_items)])
+    print("The values of x:", x)
+    
+    D = np.array([norm.rvs(size = runs, loc = Data[0][i], scale = Data[1][i]) for i in range(15) if x[i] == 1])
 
     ## 2. In cases where the simulation yields negative item sizes, these values can be adjusted to 0.
     D[np.where(D<0)] = 0
 
     ## 3. Calculate the revenue, cost, and total profit.
-    R = np.array(Data[2][0:nr_items]) # unit revenue
+    R = np.array(Data[2][0:15]) # unit revenue
+    R = [R[i] for i in range(15) if x[i] == 1]
     revenue = np.matmul(D.T, R)  # total revenue (revenue[i] is the revenue of one run)
     total_size = np.sum(D, axis=0) # The item sizes of items together (total_size[i] is the total size of one run)
     remaining_capacity = C - total_size
     cost = np.where(remaining_capacity > 0, -s*remaining_capacity, p*remaining_capacity) # if the remaining capcity is positive, we use the salvage value otherwise the cost value p
+    capacity_cost = C*c
+    cost = [cost[i] + capacity_cost for i in range(np.size(cost))]
     profit = revenue - cost
     return revenue, cost, profit
 
-rev, cost, profit = Monte_Carlo_2_pebble(10240, p, s, C)
+rev, cost, profit = Monte_Carlo_2_pebble(10240, p, s, C, revenue)
 CI = confidence_interval(profit)
 CI[1]-CI[0] # indeed the gap is smaller than 1. 
 np.mean(profit)
 ### plot histogram
 plt.hist(profit, 50)
 plt.show()
+

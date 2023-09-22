@@ -83,7 +83,7 @@ def loss_function_normal(C,mu,sigma):
     return sigma*(norm(0,1).pdf(z) - z + z*norm(0,1).cdf(z))
     
 true_profit = np.sum((revenue[0:7]-s)*mu[0:7])-(p-s)*loss_function_normal(C,np.sum(mu[0:7]),np.sum(sigma[0:7])) + s*C
-
+true_profit
 #%% Monte Carlo simulation of the improved solution.
 
 #%%
