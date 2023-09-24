@@ -239,8 +239,17 @@ C_star = mu_D + Z*np.sqrt(sigma_D)
 revenue_I, costs_I, profit_I = Monte_Carlo_1(5120, x, C_star)
 np.sum(profit_I)/5120
 
-#%%
+#%% 95% confidence interval
+CI_I = confidence_interval(profit_I)
 
+#%% Plot histogram improved solution
+plt.hist(profit_I, 50)
+plt.show()
+
+#%% True profit improved solution
+idx = np.where(x == 1)
+true_profit_I = np.matmul((unit_revenue[idx]-s),mu[idx])-p*loss_function_normal(C,np.sum(mu[idx]),np.sum(sigma[idx])) + s*C - c*C
+true_profit_I
 
 
 #%%
