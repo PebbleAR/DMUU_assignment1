@@ -15,6 +15,8 @@ s       = 4           # Salvage value
 c       = 15          # Unit capacity cost
 p       = p_prime - s
 
+initial_x = np.append(np.ones(7),np.zeros(8))
+
 ## Table 2, page 476 on Capacity level
 L = 30 * n
 U = 120 * n
@@ -25,23 +27,28 @@ mu = np.array(Data[0])
 sigma = np.array(Data[1])
 unit_revenue = np.array(Data[2])
 
+N = np.sum(initial_x).astype(int)
+
+
 
 #%% Part 2.1 - Monte Carlo simulation of initial solution
 C = (U + L)/2
 
-def Monte_Carlo_1(runs, p, s, C):
+def Monte_Carlo_1(runs, x, C):
     ## 1. Generate item sizes using Monte Carlo and the Box-Muller transform
-    # The first seven items are in the knapsack, so we only have to generate 7 item sizes
+    # Use initial x to determine the means, standard deviations, etc.
+    idx = np.where(x==1)
+    N = np.sum(x).astype(int)           # Number of items in knapsack
     
     # Parameters of the desired normal distribution
-    mean = mu[0:7]
-    std = sigma[0:7]
-    unit_rev = unit_revenue[0:7]
+    mean = mu[idx]
+    std = sigma[idx]
+    unit_rev = unit_revenue[idx]
 
     
     # Generate 7 uniformly distributed random variables U
-    U1 = np.array([uniform.rvs(size = runs) for i in range(7)])
-    U2 = np.array([uniform.rvs(size = runs) for i in range(7)])
+    U1 = np.array([uniform.rvs(size = runs) for i in range(N)])
+    U2 = np.array([uniform.rvs(size = runs) for i in range(N)])
     
     
     # Box-Muller transform
@@ -65,7 +72,7 @@ def Monte_Carlo_1(runs, p, s, C):
     total_revenue = revenue + salvage_revenue
     
     # Underage costs
-    cu = np.where( remaining_capacity < 0, p*remaining_capacity, 0)
+    cu = np.where( remaining_capacity < 0, p_prime*remaining_capacity, 0)
     
     # Capacity costs per run
     cc = C*c
@@ -86,7 +93,8 @@ def Monte_Carlo_1(runs, p, s, C):
     return total_revenue, total_costs, total_profit
 
 
-revenue_1, costs_1, profit_1 = Monte_Carlo_1(5120, p_prime, s, C)
+revenue_1, costs_1, profit_1 = Monte_Carlo_1(5120, initial_x, C)
+np.sum(profit_1)/5120
 
 #%% State the 95% confidence interval for the expected profit
 
@@ -98,11 +106,11 @@ def confidence_interval(profit):
 
 ## Determining CI 
 # Note that in order to half the confidence interval, one needs to use 4*n runs instead of n. 
-revenue_1, costs_1, profit_1 = Monte_Carlo_1(5, p_prime, s, C) 
+revenue_1, costs_1, profit_1 = Monte_Carlo_1(5, initial_x, C) 
 CI = confidence_interval(profit_1)
 CI[1]-CI[0] # gap is about 30, so we need to half the interval at least 5 times to get a gap of 1. This means that we need 5120 runs. 
 
-revenue_1, costs_1, profit_1 = Monte_Carlo_1(5120, p_prime, s, C) 
+revenue_1, costs_1, profit_1 = Monte_Carlo_1(5120, initial_x, C) 
 CI = confidence_interval(profit_1)
 CI[1]-CI[0] # indeed the gap is smaller than 1. 
 
@@ -214,6 +222,22 @@ in_set_cor = np.delete(in_set, np.where(in_set == -1))
 x[in_set_cor] = 1
 
 ## News vendor problem to solve for optimal capacity
+r = np.average(unit_revenue*x)      # average revenue
+
+cu = r - c + p_prime                # underage cost
+co = c - s                          # overage cost
+
+mu_D = np.sum(mu*x)
+sigma_D = np.sum(sigma*x)
+
+alpha = cu / (cu + co)
+Z = norm.ppf(alpha)
+
+C_star = mu_D + Z*np.sqrt(sigma_D)
+
+# Resulting profit
+revenue_I, costs_I, profit_I = Monte_Carlo_1(5120, x, C_star)
+np.sum(profit_I)/5120
 
 #%%
 
