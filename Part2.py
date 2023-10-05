@@ -86,6 +86,8 @@ def Monte_Carlo_1(runs, x, C):
     
     # P_i = np.sum(D.T*(R-s), axis = 1) - (p-s)*(np.sum(D,axis = 0)-C)*(np.sum(D,axis = 0)>C) + s*C
     # P = np.sum(P_i)/runs
+    print(D[0])
+    print(total_profit[0])
     
     return total_revenue, total_costs, total_profit
 
@@ -112,7 +114,8 @@ CI[1]-CI[0] # indeed the gap is smaller than 1.
 
 # %% Construct a histogram for the profit distribution based on your simulation results
 plt.hist(profit_1, 50)
-plt.title("Hist Initial solution 1")
+plt.title("Histogram of Monte Carlo simulation of Initial solution")
+plt.xlabel("Profit")
 plt.show()
 
 #%%
@@ -311,7 +314,8 @@ CI_I = confidence_interval(profit_I)
 
 #%% Plot histogram improved solution
 plt.hist(profit_I, 50)
-plt.title("Hist Improved solution Newsvendor problem")
+plt.title("Histogram of Monte Carlo simulation of Improved solution")
+plt.xlabel("Profit")
 plt.show()
 
 #%% True profit improved solution
@@ -355,5 +359,5 @@ def CI_diff_mean_profits(runs, C_star):
         diff_profits.append(mean_prof_imp - mean_prof_in)
     return confidence_interval(diff_profits)
 
-CI_diff_mean_prof = CI_diff_mean_profits(100, C_star)
-print(CI_diff_mean_prof)
+# CI_diff_mean_prof = CI_diff_mean_profits(100, C_star)
+# print(CI_diff_mean_prof)
