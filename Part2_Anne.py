@@ -74,8 +74,8 @@ P = Monte_Carlo_1(N_runs, p, s, c, C)
 # ...?
 
 ## Construct a histogram for the profit distribution based on the simulation results.
-plt.hist(P_i)
-plt.show()
+# plt.hist(P_i)
+# plt.show()
 
 ## Calculate the true objective function.
 def loss_function_normal(C,mu,sigma):
