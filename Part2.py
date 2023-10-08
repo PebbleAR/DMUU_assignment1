@@ -177,7 +177,7 @@ print(f"The true objective of the initial simulation: {true_profit}")
 # True profit improved solution
 idx = np.where(x_I == 1)
 true_profit_I = np.matmul((unit_revenue[idx]-s),mu[idx])-p_prime*loss_function_normal(C_star,np.sum(mu[idx]),np.sum(sigma[idx])) + s*C_star - c*C_star
-print(f"The true objective of the improved simulation: {true_profit}")
+print(f"The true objective of the improved simulation: {true_profit_I}")
 
 # Confidence interval for the difference of the mean profits
 CI_diff_mean_profit = confidence_interval(profit_I - profit_1)
