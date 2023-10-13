@@ -49,19 +49,19 @@ phi = m.addVars(N, vtype = GRB.CONTINUOUS, name="phi")
 sum1_obj = [sum((revenue[i] - s)*D[i][j]*x[i] for i in range(15)) for j in range(N)]
 sum2_obj = sum(sum1_obj[k] - (p_prime - s) * y[k] for k in range(N))
 obj = (s-c)*C[0] + (1/N)*(sum2_obj)
-new_obj = (1-beta) * obj + beta*CVar
+#new_obj = (1-beta) * obj + beta*CVar
 m.addConstrs((y[k]>=sum(D[i][k]*x[i] for i in range(n)) - C[0] for k in range(N)), name='c1')
 m.addConstrs((y[k]>=0 for k in range(N)), name='c2')
 m.addConstr((C[0]>=L), name='c3')
 m.addConstr((C[0]<=U), name='c4')
 m.addConstr((Var>= tau), name='c5')
-m.addConstr((Var - ( (s-c)*C[0] + (sum1_obj[k] - (p_prime-s)*y[k])) <= 999999*phi[k] for k in range(N)))), name='c6')
+m.addConstrs((Var - ( (s-c)*C[0] + (sum1_obj[k] - (p_prime-s)*y[k])) <= 999999*phi[k] for k in range(N)), name='c6')
 #g = ( (s-c)*C[0] + (sum1_obj[k] - (p_prime-s)*y[k]))
-m.addConstrs((eta[k] >= t - ( (s-c)*C[0] + (sum1_obj[k] - (p_prime-s)*y[k]))  for k in range(N)), name='c7')
-m.addConstrs((eta[k] >= 0 for k in range(N)), name='c8')
+m.addConstr((sum(phi[k] for k in range(N))/N <= alpha), name='c7')
 
 
-m.setObjective(new_obj, GRB.MAXIMIZE)
+
+m.setObjective(obj, GRB.MAXIMIZE)
 m.optimize()
 
 m.objval
@@ -70,4 +70,6 @@ dict_vals = dict()
 for v in m.getVars():
     dict_vals[v.VarName] = v.X
 
-list(dict_vals.items())[0:16]
+#solution VaR
+x = list(dict_vals.values())[0:15]
+C = list(dict_vals.values())[15]
