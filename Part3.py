@@ -5,9 +5,7 @@ import matplotlib.pyplot as plt
 import gurobipy as gp
 from gurobipy import GRB
 from collections import defaultdict
-from Part2 import Monte_Carlo_1, improved_solution, confidence_interval
-
-
+import time
 np.random.seed(1)
 
 n = 15          # Number of items
@@ -26,13 +24,15 @@ sigma = np.array(Data[1])
 revenue = np.array(Data[2])
 
 N = 500
-M = 5
+M = 20
 
 def generateD(N,mu,sigma):
     """Generate an instance of D"""
     D = np.array([norm.rvs(size = N, loc = mu[i], scale = sigma[i]) for i in range(15)])
     return D
 
+
+start_time = time.time()
 
 ### SAA
 optimalVals = []
@@ -68,8 +68,16 @@ for j in range(M):
 MaxSol = np.argmax(optimalVals)
 solution = solutionVariables[MaxSol]
 optimalVal = max(optimalVals)
-
+optimalVal
+list(solution.values())[0:15] 
+list(solution.values())[15] 
 ### Results 
+## N = 500, M = 20:
+## N = 500, M = 10:
+## N = 500, M = 5: optimal value: 1966.934295755254, solution; [1.0, -0.0, 1.0, 1.0, 1.0, 1.0, -0.0, 1.0, 1.0, 1.0, -0.0, 1.0, 1.0, 1.0, 1.0], C = 1731.4860057911221
+
+
+
 ## N = 150, M = 20: optimal value; 2002.7732889069537, solution; [1.0, -0.0, 1.0, 1.0, 1.0, -0.0, -0.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0], C = 1743.0557733415567
 ## N = 150, M = 10: optimal value; 2002.7732889069537, solution; [1.0, -0.0, 1.0, 1.0, 1.0, -0.0, -0.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0], C = 1743.0557733415567
 ## N = 150, M = 5: optimal value; 1968.1466674085327, solution; [1.0, -0.0, 1.0, 1.0, 1.0, 1.0, -0.0, 1.0, 1.0, 1.0, -0.0, 1.0, 1.0, 1.0, 1.0], C = 1740.9365801616134
@@ -85,8 +93,8 @@ optimalVal = max(optimalVals)
 ### Determining the gap 
 
 ## Determine Lowerbound
-t = 2.132       # alpha = 0.05, M = 5
-t = 1.833       # alpha = 0.05, M = 10
+#t = 2.132       # alpha = 0.05, M = 5
+#t = 1.833       # alpha = 0.05, M = 10
 t = 1.729       # alpha = 0.05, M = 20
 
 L = np.mean(optimalVals) - t * np.var(optimalVals)
@@ -114,26 +122,6 @@ z = 1.64
 U = mean + z*std
 gap = U - L
 
-# print(L, U, gap) #####
+print(L, optimalVal, U, gap)
 
-# Confidence interval for the difference of the mean profits
-def CI_diff_mean_profits(runs, data):
-    diff_profits = []
-    for _ in range(runs):
-        sol_SAA = Monte_Carlo_1(3225, x, C)
-        mean_prof_SAA = np.mean(sol_SAA[2])
-
-        sol_improved = improved_solution(data, sol_SAA[3])
-        mean_prof_I = np.mean(sol_improved[2])
-
-        diff_profits.append(abs(mean_prof_SAA - mean_prof_I))
-
-    return confidence_interval(diff_profits), sol_SAA[2]
-
-CI_diff_mean_prof, sol_SAA = CI_diff_mean_profits(100, Data)
-print(f"The confidence interval of the difference of the mean profits with 100 runs is: {CI_diff_mean_prof}")
-
-plt.hist(sol_SAA, 50)
-plt.title("Histogram of Monte Carlo simulation of SAA solution")
-plt.xlabel("Profit")
-plt.show()
+print("--- %s seconds ---" % (time.time() - start_time))
