@@ -7,6 +7,7 @@ from gurobipy import GRB
 from collections import defaultdict
 import time
 np.random.seed(1)
+from Part2 import Monte_Carlo_1, improved_solution, confidence_interval
 
 n = 15          # Number of items
 p_prime = 25    # Unit overflow cost
@@ -125,3 +126,25 @@ gap = U - L
 print(L, optimalVal, U, gap)
 
 print("--- %s seconds ---" % (time.time() - start_time))
+
+# Confidence interval for the difference of the mean profits
+def CI_diff_mean_profits(runs, data):
+    diff_profits = []
+    for _ in range(runs):
+        sol_SAA = Monte_Carlo_1(3225, x, C)
+        mean_prof_SAA = np.mean(sol_SAA[2])
+
+        sol_improved = improved_solution(data, sol_SAA[3])
+        mean_prof_I = np.mean(sol_improved[2])
+
+        diff_profits.append(abs(mean_prof_SAA - mean_prof_I))
+
+    return confidence_interval(diff_profits), sol_SAA[2]
+
+CI_diff_mean_prof, sol_SAA = CI_diff_mean_profits(100, Data)
+print(f"The confidence interval of the difference of the mean profits with 100 runs is: {CI_diff_mean_prof}")
+
+plt.hist(sol_SAA, 50)
+plt.title("Histogram of Monte Carlo simulation of SAA solution")
+plt.xlabel("Profit")
+plt.show()
