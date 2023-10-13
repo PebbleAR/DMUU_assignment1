@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 import gurobipy as gp
 from gurobipy import GRB
 from collections import defaultdict
-
+import time
 np.random.seed(1)
 
 n = 15          # Number of items
@@ -23,7 +23,7 @@ mu = np.array(Data[0])
 sigma = np.array(Data[1])
 revenue = np.array(Data[2])
 
-N = 150
+N = 500
 M = 20
 
 def generateD(N,mu,sigma):
@@ -31,6 +31,8 @@ def generateD(N,mu,sigma):
     D = np.array([norm.rvs(size = N, loc = mu[i], scale = sigma[i]) for i in range(15)])
     return D
 
+
+start_time = time.time()
 
 ### SAA
 optimalVals = []
@@ -66,8 +68,16 @@ for j in range(M):
 MaxSol = np.argmax(optimalVals)
 solution = solutionVariables[MaxSol]
 optimalVal = max(optimalVals)
-
+optimalVal
+list(solution.values())[0:15] 
+list(solution.values())[15] 
 ### Results 
+## N = 500, M = 20:
+## N = 500, M = 10:
+## N = 500, M = 5: optimal value: 1966.934295755254, solution; [1.0, -0.0, 1.0, 1.0, 1.0, 1.0, -0.0, 1.0, 1.0, 1.0, -0.0, 1.0, 1.0, 1.0, 1.0], C = 1731.4860057911221
+
+
+
 ## N = 150, M = 20: optimal value; 2002.7732889069537, solution; [1.0, -0.0, 1.0, 1.0, 1.0, -0.0, -0.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0], C = 1743.0557733415567
 ## N = 150, M = 10: optimal value; 2002.7732889069537, solution; [1.0, -0.0, 1.0, 1.0, 1.0, -0.0, -0.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0], C = 1743.0557733415567
 ## N = 150, M = 5: optimal value; 1968.1466674085327, solution; [1.0, -0.0, 1.0, 1.0, 1.0, 1.0, -0.0, 1.0, 1.0, 1.0, -0.0, 1.0, 1.0, 1.0, 1.0], C = 1740.9365801616134
@@ -83,8 +93,8 @@ optimalVal = max(optimalVals)
 ### Determining the gap 
 
 ## Determine Lowerbound
-t = 2.132       # alpha = 0.05, M = 5
-t = 1.833       # alpha = 0.05, M = 10
+#t = 2.132       # alpha = 0.05, M = 5
+#t = 1.833       # alpha = 0.05, M = 10
 t = 1.729       # alpha = 0.05, M = 20
 
 L = np.mean(optimalVals) - t * np.var(optimalVals)
@@ -112,4 +122,6 @@ z = 1.64
 U = mean + z*std
 gap = U - L
 
-print(L, U, gap)
+print(L, optimalVal, U, gap)
+
+print("--- %s seconds ---" % (time.time() - start_time))
