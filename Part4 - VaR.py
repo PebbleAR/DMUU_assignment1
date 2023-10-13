@@ -1,4 +1,5 @@
 from Part1 import generate_data
+from Part2 import Monte_Carlo_1
 import numpy as np
 from scipy.stats import norm
 import matplotlib.pyplot as plt
@@ -6,6 +7,7 @@ import gurobipy as gp
 from gurobipy import GRB
 from collections import defaultdict
 import time
+from matplotlib import rc
 np.random.seed(1)
 
 n = 15          # Number of items
@@ -13,7 +15,7 @@ p_prime = 25    # Unit overflow cost
 s = 4           # Salvage value
 c = 15          # Unit capacity cost
 
-alpha = 0.05
+alpha = 0.01
 
 
 ## Table 2, page 476 on Capacity level
@@ -26,7 +28,7 @@ mu = np.array(Data[0])
 sigma = np.array(Data[1])
 revenue = np.array(Data[2])
 
-tau = 0 
+tau = 2000
 sigma_prime = sum(sigma)
 mu_prime = sum(mu)
 
@@ -55,7 +57,7 @@ m.addConstrs((y[k]>=0 for k in range(N)), name='c2')
 m.addConstr((C[0]>=L), name='c3')
 m.addConstr((C[0]<=U), name='c4')
 m.addConstr((Var>= tau), name='c5')
-m.addConstrs((Var - ( (s-c)*C[0] + (sum1_obj[k] - (p_prime-s)*y[k])) <= 999999*phi[k] for k in range(N)), name='c6')
+m.addConstrs(( -( (s-c)*C[0] + (sum1_obj[k] - (p_prime-s)*y[k])) + Var <= 999999*phi[k] for k in range(N)), name='c6')
 #g = ( (s-c)*C[0] + (sum1_obj[k] - (p_prime-s)*y[k]))
 m.addConstr((sum(phi[k] for k in range(N))/N <= alpha), name='c7')
 
@@ -73,3 +75,12 @@ for v in m.getVars():
 #solution VaR
 x = list(dict_vals.values())[0:15]
 C = list(dict_vals.values())[15]
+x
+output = Monte_Carlo_1(10000, x, C)
+profit = output[2]
+plt.hist(profit, 50)
+plt.title(fr"Histogram of Monte Carlo simulation of VaR solution, for $\tau$ ={tau}")
+plt.xlabel("Profit")
+plt.show()
+np.mean(profit)
+len(profit[profit < tau]) / len(profit)
