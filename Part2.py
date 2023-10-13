@@ -180,7 +180,20 @@ true_profit_I = np.matmul((unit_revenue[idx]-s),mu[idx])-p_prime*loss_function_n
 print(f"The true objective of the improved simulation: {true_profit_I}")
 
 # Confidence interval for the difference of the mean profits
-CI_diff_mean_profit = confidence_interval(profit_I - profit_1)
+def CI_diff_mean_profits(runs):
+    diff_profits = []
+    for _ in range(runs):
+        sol_initial = Monte_Carlo_1(3225, p, s, C)
+        mean_prof_1 = np.mean(sol_initial[2])
+
+        sol_improved = improved_solution(3225, p, s, C)
+        mean_prof_I = np.mean(sol_improved[2])
+
+        diff_profits.append(mean_prof_I - mean_prof_1)
+
+    return confidence_interval(diff_profits)
+
+CI_diff_mean_prof = CI_diff_mean_profits(10)
 print(f"The confidence interval of the difference of the mean profits with 3225 runs is: {CI_diff_mean_profit}")
 
 # Variance reduction
