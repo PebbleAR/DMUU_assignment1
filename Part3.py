@@ -6,8 +6,9 @@ import gurobipy as gp
 from gurobipy import GRB
 from collections import defaultdict
 import time
-np.random.seed(1)
 from Part2 import Monte_Carlo_1, improved_solution, confidence_interval
+
+np.random.seed(1)
 
 n = 15          # Number of items
 p_prime = 25    # Unit overflow cost
@@ -24,8 +25,8 @@ mu = np.array(Data[0])
 sigma = np.array(Data[1])
 revenue = np.array(Data[2])
 
-N = 500
-M = 20
+N = 1000
+M = 5
 
 def generateD(N,mu,sigma):
     """Generate an instance of D"""
@@ -141,10 +142,10 @@ def CI_diff_mean_profits(runs, data):
 
     return confidence_interval(diff_profits), sol_SAA[2]
 
-CI_diff_mean_prof, sol_SAA = CI_diff_mean_profits(100, Data)
+CI_diff_mean_prof, sol_SAAt = CI_diff_mean_profits(100, Data)
 print(f"The confidence interval of the difference of the mean profits with 100 runs is: {CI_diff_mean_prof}")
 
-plt.hist(sol_SAA, 50)
+plt.hist(sol_SAAt, 50)
 plt.title("Histogram of Monte Carlo simulation of SAA solution")
 plt.xlabel("Profit")
 plt.show()

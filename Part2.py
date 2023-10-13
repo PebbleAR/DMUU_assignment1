@@ -191,9 +191,9 @@ def CI_diff_mean_profits(runs, data):
 
         diff_profits.append(abs(mean_prof_I - mean_prof_1))
 
-    return confidence_interval(diff_profits, Data)
+    return confidence_interval(diff_profits)
 
-CI_diff_mean_prof = CI_diff_mean_profits(10)
+CI_diff_mean_prof = CI_diff_mean_profits(10, Data)
 print(f"The confidence interval of the difference of the mean profits with 3225 runs is: {CI_diff_mean_prof}")
 
 # Variance reduction
