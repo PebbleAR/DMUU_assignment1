@@ -5,6 +5,8 @@ import matplotlib.pyplot as plt
 import gurobipy as gp
 from gurobipy import GRB
 from collections import defaultdict
+from Part2 import Monte_Carlo_1, improved_solution, confidence_interval
+
 
 np.random.seed(1)
 
@@ -23,8 +25,8 @@ mu = np.array(Data[0])
 sigma = np.array(Data[1])
 revenue = np.array(Data[2])
 
-N = 150
-M = 20
+N = 500
+M = 5
 
 def generateD(N,mu,sigma):
     """Generate an instance of D"""
@@ -112,4 +114,26 @@ z = 1.64
 U = mean + z*std
 gap = U - L
 
-print(L, U, gap)
+# print(L, U, gap)
+
+# Confidence interval for the difference of the mean profits
+def CI_diff_mean_profits(runs, data):
+    diff_profits = []
+    for _ in range(runs):
+        sol_SAA = Monte_Carlo_1(3225, x, C)
+        mean_prof_SAA = np.mean(sol_SAA[2])
+
+        sol_improved = improved_solution(data, sol_SAA[3])
+        mean_prof_I = np.mean(sol_improved[2])
+
+        diff_profits.append(abs(mean_prof_SAA - mean_prof_I))
+
+    return confidence_interval(diff_profits), sol_SAA[2]
+
+CI_diff_mean_prof, sol_SAA = CI_diff_mean_profits(100, Data)
+print(f"The confidence interval of the difference of the mean profits with 100 runs is: {CI_diff_mean_prof}")
+
+plt.hist(sol_SAA, 50)
+plt.title("Histogram of Monte Carlo simulation of SAA solution")
+plt.xlabel("Profit")
+plt.show()
