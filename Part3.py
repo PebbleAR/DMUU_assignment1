@@ -114,7 +114,7 @@ z = 1.64
 U = mean + z*std
 gap = U - L
 
-# print(L, U, gap)
+# print(L, U, gap) #####
 
 # Confidence interval for the difference of the mean profits
 def CI_diff_mean_profits(runs, data):
