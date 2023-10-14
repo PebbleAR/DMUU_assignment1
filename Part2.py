@@ -140,6 +140,8 @@ def improved_solution(data, D):
 revenue_1, costs_1, profit_1, D = Monte_Carlo_1(3225, initial_x, C)
 revenue_I, costs_I, profit_I, C_star, x_I = improved_solution(Data, D)
 
+C_star = round(C_star)
+
 # 95% confidence interval calculated
 def confidence_interval(profit):
     mean = np.mean(profit)
