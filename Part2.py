@@ -50,7 +50,7 @@ def Monte_Carlo_1(runs, x, C, D0 = None):
         # Generate 7 uniformly distributed random variables U
         U1 = np.array([uniform.rvs(size = runs) for i in range(N)])
         U2 = np.array([uniform.rvs(size = runs) for i in range(N)])
-        
+
         # Box-Muller transform
         Z = np.sqrt(-2* np.log(U1)) * np.cos(2 * np.pi * U2)
         
@@ -200,3 +200,31 @@ CI_diff_mean_prof = CI_diff_mean_profits(10, Data)
 print(f"The confidence interval of the difference of the mean profits with 3225 runs is: {CI_diff_mean_prof}")
 
 # Variance reduction
+var_I = np.var(profit_I)
+runs = 3225
+def variance_reduction_control(Data):
+    U1 = np.array([uniform.rvs(size = runs) for i in range(N)])
+    U2 = 1 - U1
+    Z = np.sqrt(-2* np.log(U1)) * np.cos(2 * np.pi * U2)
+    D_control = mu + Z.T * sigma
+    D_control[np.where(D_control<0)] = 0
+    revenue_C, cost_C, profit_C = improved_solution(Data, D_control)
+    var_C = np.var(profit_C)
+    return var_C
+
+def variance_reduction_antithetic(Data):
+    mean = mu
+    std = sigma
+    U1 = np.array([uniform.rvs(size = runs) for i in range(15)])
+    U2 = 1-U1
+    Z = np.sqrt(-2* np.log(U1)) * np.cos(2 * np.pi * U2)
+    D_antithetic = mean + Z.T * std
+    D_antithetic[np.where(D_antithetic<0)] = 0
+    revenue_A, cost_A, profit_A, C_star, x_A = improved_solution(Data, D_antithetic)
+    var_A = np.var(profit_A)
+    return var_A
+
+var_A = variance_reduction_antithetic(Data)
+print(var_I)
+print(var_A)
+#var_C = variance_reduction_control(Data)
