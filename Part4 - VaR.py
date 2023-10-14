@@ -15,7 +15,7 @@ p_prime = 25    # Unit overflow cost
 s = 4           # Salvage value
 c = 15          # Unit capacity cost
 
-alpha = 0.01
+alpha = 0.001
 
 
 ## Table 2, page 476 on Capacity level
@@ -28,7 +28,7 @@ mu = np.array(Data[0])
 sigma = np.array(Data[1])
 revenue = np.array(Data[2])
 
-tau = 2000
+tau = -100
 sigma_prime = sum(sigma)
 mu_prime = sum(mu)
 
@@ -46,7 +46,7 @@ x = m.addVars(n, vtype = GRB.BINARY, name="x")
 C = m.addVars(1, vtype = GRB.CONTINUOUS, name="C")
 y = m.addVars(N, vtype = GRB.CONTINUOUS, name="y")
 Var = m.addVar(1, vtype = GRB.CONTINUOUS, name="Var")
-phi = m.addVars(N, vtype = GRB.CONTINUOUS, name="phi")
+phi = m.addVars(N, vtype = GRB.BINARY, name="phi")
 
 sum1_obj = [sum((revenue[i] - s)*D[i][j]*x[i] for i in range(15)) for j in range(N)]
 sum2_obj = sum(sum1_obj[k] - (p_prime - s) * y[k] for k in range(N))
@@ -60,9 +60,6 @@ m.addConstr((Var>= tau), name='c5')
 m.addConstrs(( -( (s-c)*C[0] + (sum1_obj[k] - (p_prime-s)*y[k])) + Var <= 999999*phi[k] for k in range(N)), name='c6')
 #g = ( (s-c)*C[0] + (sum1_obj[k] - (p_prime-s)*y[k]))
 m.addConstr((sum(phi[k] for k in range(N))/N <= alpha), name='c7')
-
-
-
 m.setObjective(obj, GRB.MAXIMIZE)
 m.optimize()
 
@@ -72,10 +69,11 @@ dict_vals = dict()
 for v in m.getVars():
     dict_vals[v.VarName] = v.X
 
+
 #solution VaR
 x = list(dict_vals.values())[0:15]
 C = list(dict_vals.values())[15]
-x
+C
 output = Monte_Carlo_1(10000, x, C)
 profit = output[2]
 plt.hist(profit, 50)
