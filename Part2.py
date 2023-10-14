@@ -101,7 +101,8 @@ def improved_solution(data, D):
 
     # Measure pf attractiveness
     rho = (r_i - p*mu*Phi_z)/sigma
-    sorted_indexes = np.argsort(rho)
+    sorted_indexes = np.flip(np.argsort(rho))
+    
 
     # Logic regarding measure of attractiveness: if x_j = 1 and rho_k(z) > rho_j(z) then x_k = 1
     # Similarly, if x_j = 0 and rho_k(x) < rho_j(z) then x_k = 0
