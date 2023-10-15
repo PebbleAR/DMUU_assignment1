@@ -15,7 +15,7 @@ p_prime = 25    # Unit overflow cost
 s = 4           # Salvage value
 c = 15          # Unit capacity cost
 
-alpha = 0.001
+
 
 
 ## Table 2, page 476 on Capacity level
@@ -28,7 +28,6 @@ mu = np.array(Data[0])
 sigma = np.array(Data[1])
 revenue = np.array(Data[2])
 
-tau = -100
 sigma_prime = sum(sigma)
 mu_prime = sum(mu)
 
@@ -39,27 +38,33 @@ def generateD(N,mu,sigma):
     D = np.array([norm.rvs(size = N, loc = mu[i], scale = sigma[i]) for i in range(15)])
     return D
 
+t = -100
+alpha = 0.001
+beta = 0.05
+
+
 # Solve the linear program, using the generated D
 D = generateD(N,mu,sigma)  
-m = gp.Model("KnapsackCvar")
+m = gp.Model("KnapsackCVaR")
 x = m.addVars(n, vtype = GRB.BINARY, name="x")
 C = m.addVars(1, vtype = GRB.CONTINUOUS, name="C")
 y = m.addVars(N, vtype = GRB.CONTINUOUS, name="y")
-Var = m.addVar(1, vtype = GRB.CONTINUOUS, name="Var")
-phi = m.addVars(N, vtype = GRB.BINARY, name="phi")
+CVaR = m.addVar(1, vtype = GRB.CONTINUOUS, name="Var")
+eta = m.addVars(N, vtype = GRB.BINARY, name="eta")
+t = m.addVars(1, vtype = GRB.CONTINUOUS, name="t")
 
 sum1_obj = [sum((revenue[i] - s)*D[i][j]*x[i] for i in range(15)) for j in range(N)]
 sum2_obj = sum(sum1_obj[k] - (p_prime - s) * y[k] for k in range(N))
 obj = (s-c)*C[0] + (1/N)*(sum2_obj)
-#new_obj = (1-beta) * obj + beta*CVar
+new_obj = (1-beta) * obj + beta*CVaR
+
 m.addConstrs((y[k]>=sum(D[i][k]*x[i] for i in range(n)) - C[0] for k in range(N)), name='c1')
 m.addConstrs((y[k]>=0 for k in range(N)), name='c2')
 m.addConstr((C[0]>=L), name='c3')
 m.addConstr((C[0]<=U), name='c4')
-m.addConstr((Var>= tau), name='c5')
-m.addConstrs(( -( (s-c)*C[0] + (sum1_obj[k] - (p_prime-s)*y[k])) + Var <= 999999*phi[k] for k in range(N)), name='c6')
-#g = ( (s-c)*C[0] + (sum1_obj[k] - (p_prime-s)*y[k]))
-m.addConstr((sum(phi[k] for k in range(N))/N <= alpha), name='c7')
+m.addConstr((t[0] + 1/(alpha*N)*sum(eta[k] for k in range(N))), name='c5')
+m.addConstrs((eta[k] >= t[0] - ((s-c)*C) + sum2_obj for k in range(N)), name='c6')
+m.addConstrs((eta[k] >= 0 for k in range(N)), name='c7')
 m.setObjective(obj, GRB.MAXIMIZE)
 m.optimize()
 
@@ -70,15 +75,14 @@ for v in m.getVars():
     dict_vals[v.VarName] = v.X
 
 
-#solution VaR
+#solution CVaR
 x = list(dict_vals.values())[0:15]
 C = list(dict_vals.values())[15]
-C
 output = Monte_Carlo_1(10000, x, C)
 profit = output[2]
 plt.hist(profit, 50)
-plt.title(fr"Histogram of Monte Carlo simulation of VaR solution, for $\tau$ ={tau}")
+plt.title(fr"Histogram of Monte Carlo simulation of VaR solution, for t = {t}")
 plt.xlabel("Profit")
 plt.show()
 np.mean(profit)
-len(profit[profit < tau]) / len(profit)
+len(profit[profit < t]) / len(profit)
