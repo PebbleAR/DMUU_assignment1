@@ -28,16 +28,9 @@ C = (U + L)/2
 
 # Monte Carlo Simulation of the initial solution
 def Monte_Carlo_1(runs, x, C, D0 = None):
-    ## Generate item sizes using Monte Carlo and the Box-Muller transform
-    # Use initial x to determine the means, standard deviations, etc.
-    idx = np.where(x==1)
-    # N = np.sum(x).astype(int)         # Number of items in knapsack
+    """Generate item sizes using Monte Carlo and the Box-Muller transform
+       Use initial x to determine the means, standard deviations, etc."""
     N = len(x)
-
-    # Parameters of the desired normal distribution
-    # mean = mu[idx]
-    # std = sigma[idx]
-    # unit_rev = unit_revenue[idx]
 
     mean = mu
     std = sigma
@@ -82,9 +75,9 @@ def Monte_Carlo_1(runs, x, C, D0 = None):
     
     return total_revenue, total_costs, total_profit, D
 
-# Monte Carlo Simulation of the improved solution
-## Greedy algorithm based on the service level (z) (see Article)
 def improved_solution(data, D):
+    """Monte Carlo Simulation of the improved solution
+       Greedy algorithm based on the service level (z) (see Article)"""
     mu = np.array(data[0])
     sigma = np.array(data[1])
     unit_revenue = np.array(data[2])
@@ -102,12 +95,11 @@ def improved_solution(data, D):
     # Measure pf attractiveness
     rho = (r_i - p*mu*Phi_z)/sigma
     sorted_indexes = np.flip(np.argsort(rho))
-    
 
     # Logic regarding measure of attractiveness: if x_j = 1 and rho_k(z) > rho_j(z) then x_k = 1
     # Similarly, if x_j = 0 and rho_k(x) < rho_j(z) then x_k = 0
 
-    ## Add items according to attractiveness until previous capacity is reached
+    # Add items according to attractiveness until previous capacity is reached
     mu_new = np.array([mu[i] for i in sorted_indexes])
     mu_cumsum = np.cumsum(mu_new)
     in_set = np.where(mu_cumsum <= C, sorted_indexes, -1)
@@ -115,7 +107,7 @@ def improved_solution(data, D):
 
     x[in_set_cor] = 1
 
-    ## News vendor problem to solve for optimal capacity
+    # News vendor problem to solve for optimal capacity
     r = np.average(unit_revenue*x)      # average revenue
 
     cu = r - c + p_prime                # underage cost
@@ -225,6 +217,8 @@ def variance_reduction_antithetic(Data):
     return var_A
 
 var_A = variance_reduction_antithetic(Data)
-print(var_I)
-print(var_A)
 #var_C = variance_reduction_control(Data)
+
+print(f"The variance of the improved solution: {var_I}")
+print(f"The variance reduction of the improved solution using antithetic variates: {var_A}")
+# print(f"The variance reduction of the improved solution using control variates: {var_C}")

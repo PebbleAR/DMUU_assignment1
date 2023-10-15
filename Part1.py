@@ -1,6 +1,5 @@
 import numpy as np
-from scipy.stats import binom, uniform, poisson
-import matplotlib.pyplot as plt
+from scipy.stats import uniform
 import math
 
 np.random.seed(1)
@@ -64,10 +63,3 @@ def generate_data(n):
     return [mus, sigmas, R]
 
 data = generate_data(n)
-
-## data
-# print(f'Expected item size: {data[0]}')
-# print()
-# print(f'Standard deviation: {data[1]}')
-# print()
-# print(f'Unit revenue: {data[2]}')

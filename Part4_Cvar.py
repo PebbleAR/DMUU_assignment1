@@ -5,18 +5,13 @@ from scipy.stats import norm
 import matplotlib.pyplot as plt
 import gurobipy as gp
 from gurobipy import GRB
-from collections import defaultdict
-import time
-from matplotlib import rc
+
 np.random.seed(1)
 
 n = 15          # Number of items
 p_prime = 25    # Unit overflow cost
 s = 4           # Salvage value
 c = 15          # Unit capacity cost
-
-
-
 
 ## Table 2, page 476 on Capacity level
 L = 30 * n
@@ -38,9 +33,9 @@ def generateD(N,mu,sigma):
     D = np.array([norm.rvs(size = N, loc = mu[i], scale = sigma[i]) for i in range(15)])
     return D
 
-t = -100
-alpha = 0.001
-beta = 0.05
+
+alpha = 0.0001
+beta = 0.8
 
 
 # Solve the linear program, using the generated D
@@ -49,8 +44,8 @@ m = gp.Model("KnapsackCVaR")
 x = m.addVars(n, vtype = GRB.BINARY, name="x")
 C = m.addVars(1, vtype = GRB.CONTINUOUS, name="C")
 y = m.addVars(N, vtype = GRB.CONTINUOUS, name="y")
-CVaR = m.addVar(1, vtype = GRB.CONTINUOUS, name="Var")
-eta = m.addVars(N, vtype = GRB.BINARY, name="eta")
+CVaR = m.addVar(1, vtype = GRB.CONTINUOUS, name="CVaR")
+eta = m.addVars(N, vtype = GRB.CONTINUOUS, name="eta")
 t = m.addVars(1, vtype = GRB.CONTINUOUS, name="t")
 
 sum1_obj = [sum((revenue[i] - s)*D[i][j]*x[i] for i in range(15)) for j in range(N)]
@@ -74,15 +69,14 @@ dict_vals = dict()
 for v in m.getVars():
     dict_vals[v.VarName] = v.X
 
-
 #solution CVaR
 x = list(dict_vals.values())[0:15]
 C = list(dict_vals.values())[15]
 output = Monte_Carlo_1(10000, x, C)
 profit = output[2]
+print(np.mean(profit))
 plt.hist(profit, 50)
-plt.title(fr"Histogram of Monte Carlo simulation of VaR solution, for t = {t}")
+plt.title(fr"Monte Carlo simulation of CVaR solution, with $\alpha$ = {alpha} and $\beta$ = {beta}")
 plt.xlabel("Profit")
 plt.show()
-print(np.mean(profit))
-# len(profit[profit < t[0]]) / len(profit)
+
