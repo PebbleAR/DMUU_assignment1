@@ -4,7 +4,6 @@ from scipy.stats import norm
 import matplotlib.pyplot as plt
 import gurobipy as gp
 from gurobipy import GRB
-from collections import defaultdict
 import time
 from Part2 import Monte_Carlo_1, improved_solution, confidence_interval
 
@@ -32,7 +31,6 @@ def generateD(N,mu,sigma):
     """Generate an instance of D"""
     D = np.array([norm.rvs(size = N, loc = mu[i], scale = sigma[i]) for i in range(15)])
     return D
-
 
 start_time = time.time()
 
@@ -73,12 +71,11 @@ optimalVal = max(optimalVals)
 optimalVal
 list(solution.values())[0:15] 
 list(solution.values())[15] 
+
 ### Results 
 ## N = 500, M = 20:
 ## N = 500, M = 10:
 ## N = 500, M = 5: optimal value: 1966.934295755254, solution; [1.0, -0.0, 1.0, 1.0, 1.0, 1.0, -0.0, 1.0, 1.0, 1.0, -0.0, 1.0, 1.0, 1.0, 1.0], C = 1731.4860057911221
-
-
 
 ## N = 150, M = 20: optimal value; 2002.7732889069537, solution; [1.0, -0.0, 1.0, 1.0, 1.0, -0.0, -0.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0], C = 1743.0557733415567
 ## N = 150, M = 10: optimal value; 2002.7732889069537, solution; [1.0, -0.0, 1.0, 1.0, 1.0, -0.0, -0.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0], C = 1743.0557733415567
@@ -92,15 +89,14 @@ list(solution.values())[15]
 ## N = 50, M = 10: optimal value; 2032.6685513882148, solution; [1.0, -0.0, 1.0, 1.0, 1.0, 1.0, -0.0, 1.0, 1.0, -0.0, 1.0, 1.0, 1.0, 1.0, 1.0], C = 1762.284087755818
 ## N = 50, M = 5: optimal value; 1963.368244335958, solution; [1.0, 0.0, 1.0, 1.0, 1.0, 1.0, 0.0, 1.0, 1.0, 0.0, 1.0, 1.0, 1.0, 1.0, 1.0], C = 1750.1406196414102
 
-### Determining the gap 
 
+### Determining the gap 
 ## Determine Lowerbound
 #t = 2.132       # alpha = 0.05, M = 5
 #t = 1.833       # alpha = 0.05, M = 10
 t = 1.729       # alpha = 0.05, M = 20
 
 L = np.mean(optimalVals) - t * np.var(optimalVals)
-L
 np.mean(optimalVals)
 np.var(optimalVals)
 
@@ -145,6 +141,7 @@ def CI_diff_mean_profits(runs, data):
 CI_diff_mean_prof, sol_SAAt = CI_diff_mean_profits(100, Data)
 print(f"The confidence interval of the difference of the mean profits with 100 runs is: {CI_diff_mean_prof}")
 
+# Histogram of the SAA solution
 plt.hist(sol_SAAt, 50)
 plt.title("Histogram of Monte Carlo simulation of SAA solution")
 plt.xlabel("Profit")

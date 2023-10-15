@@ -33,13 +33,13 @@ def generateD(N,mu,sigma):
     D = np.array([norm.rvs(size = N, loc = mu[i], scale = sigma[i]) for i in range(15)])
     return D
 
-
+# Set parameters of the model
 alpha = 0.0001
 beta = 0.8
 
-
 # Solve the linear program, using the generated D
-D = generateD(N,mu,sigma)  
+D = generateD(N,mu,sigma)
+
 m = gp.Model("KnapsackCVaR")
 x = m.addVars(n, vtype = GRB.BINARY, name="x")
 C = m.addVars(1, vtype = GRB.CONTINUOUS, name="C")
@@ -47,12 +47,10 @@ y = m.addVars(N, vtype = GRB.CONTINUOUS, name="y")
 CVaR = m.addVar(1, vtype = GRB.CONTINUOUS, name="CVaR")
 eta = m.addVars(N, vtype = GRB.CONTINUOUS, name="eta")
 t = m.addVars(1, vtype = GRB.CONTINUOUS, name="t")
-
 sum1_obj = [sum((revenue[i] - s)*D[i][j]*x[i] for i in range(15)) for j in range(N)]
 sum2_obj = sum(sum1_obj[k] - (p_prime - s) * y[k] for k in range(N))
 obj = (s-c)*C[0] + (1/N)*(sum2_obj)
 new_obj = (1-beta) * obj + beta*CVaR
-
 m.addConstrs((y[k]>=sum(D[i][k]*x[i] for i in range(n)) - C[0] for k in range(N)), name='c1')
 m.addConstrs((y[k]>=0 for k in range(N)), name='c2')
 m.addConstr((C[0]>=L), name='c3')
@@ -63,8 +61,6 @@ m.addConstrs((eta[k] >= 0 for k in range(N)), name='c7')
 m.setObjective(obj, GRB.MAXIMIZE)
 m.optimize()
 
-m.objval
-
 dict_vals = dict()
 for v in m.getVars():
     dict_vals[v.VarName] = v.X
@@ -74,9 +70,7 @@ x = list(dict_vals.values())[0:15]
 C = list(dict_vals.values())[15]
 output = Monte_Carlo_1(10000, x, C)
 profit = output[2]
-print(np.mean(profit))
 plt.hist(profit, 50)
 plt.title(fr"Monte Carlo simulation of CVaR solution, with $\alpha$ = {alpha} and $\beta$ = {beta}")
 plt.xlabel("Profit")
 plt.show()
-
