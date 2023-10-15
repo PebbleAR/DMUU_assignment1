@@ -15,9 +15,6 @@ p_prime = 25    # Unit overflow cost
 s = 4           # Salvage value
 c = 15          # Unit capacity cost
 
-
-
-
 ## Table 2, page 476 on Capacity level
 L = 30 * n
 U = 120 * n
@@ -28,13 +25,13 @@ mu = np.array(Data[0])
 sigma = np.array(Data[1])
 revenue = np.array(Data[2])
 
-tau = -100
-alpha = 0.001
+tau = 0
+alpha = 0.05
 
 sigma_prime = sum(sigma)
 mu_prime = sum(mu)
 
-N = 500
+N = 1000
 
 def generateD(N,mu,sigma):
     """Generate an instance of D"""
@@ -58,8 +55,8 @@ m.addConstrs((y[k]>=sum(D[i][k]*x[i] for i in range(n)) - C[0] for k in range(N)
 m.addConstrs((y[k]>=0 for k in range(N)), name='c2')
 m.addConstr((C[0]>=L), name='c3')
 m.addConstr((C[0]<=U), name='c4')
-m.addConstr((Var >= tau), name='c5')
-m.addConstrs((-( (s-c)*C[0] + (sum1_obj[k] - (p_prime-s)*y[k])) + Var <= 999999*phi[k] for k in range(N)), name='c6')
+m.addConstr((Var[0] >= tau), name='c5')
+m.addConstrs((-( (s-c)*C[0] + (sum1_obj[k] - (p_prime-s)*y[k])) + Var[0] <= 999999*phi[k] for k in range(N)), name='c6')
 #g = ( (s-c)*C[0] + (sum1_obj[k] - (p_prime-s)*y[k]))
 m.addConstr((sum(phi[k] for k in range(N))/N <= alpha), name='c7')
 m.setObjective(obj, GRB.MAXIMIZE)
@@ -76,7 +73,7 @@ for v in m.getVars():
 x = list(dict_vals.values())[0:15]
 C = list(dict_vals.values())[15]
 C
-output = Monte_Carlo_1(10000, x, C)
+output = Monte_Carlo_1(10000, x, round(C))
 profit = output[2]
 plt.hist(profit, 50)
 plt.title(fr"Histogram of Monte Carlo simulation of VaR solution, for $\tau$ ={tau}")
