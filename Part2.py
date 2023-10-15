@@ -192,23 +192,32 @@ CI_diff_mean_prof = CI_diff_mean_profits(10, Data)
 print(f"The confidence interval of the difference of the mean profits with 3225 runs is: {CI_diff_mean_prof}")
 
 # Variance reduction
-var_I = np.var(profit_I)
 runs = 3225
-def variance_reduction_control(Data):
-    U1 = np.array([uniform.rvs(size = runs) for i in range(N)])
-    U2 = 1 - U1
-    Z = np.sqrt(-2* np.log(U1)) * np.cos(2 * np.pi * U2)
-    D_control = mu + Z.T * sigma
-    D_control[np.where(D_control<0)] = 0
-    revenue_C, cost_C, profit_C = improved_solution(Data, D_control)
-    var_C = np.var(profit_C)
+N = 15
+def variance_reduction_control(Data, D):
+    #
+    cov_I = np.cov(profit_I, revenue_I)[0,1]
+    coefficient = -(cov_I / np.var(revenue_I))
+    corr_I = np.corrcoef(profit_I, revenue_I)[0,1]
+    revenue_C, cost_C, profit_C, C_star, x_C = improved_solution(Data, D)
+    profit_C_star = profit_C + coefficient*(revenue_C - np.mean(revenue_C))
+    var_C = np.var(profit_C_star)
     return var_C
 
 def variance_reduction_antithetic(Data):
     mean = mu
     std = sigma
-    U1 = np.array([uniform.rvs(size = runs) for i in range(15)])
-    U2 = 1-U1
+    U1 = np.empty((N, runs), dtype = np.float64)
+    U2 = np.empty((N, runs), dtype = np.float64)
+    for row in range(U1.shape[0]):
+        for col in range(0, U1.shape[1]-1, 2):
+            U1[row,col] = uniform.rvs(0,1)
+            U2[row,col] = uniform.rvs(0,1)
+            U1[row,(col+1)] = 1-U1[row,col]
+            U2[row,(col+1)] = 1-U2[row,col]
+        U1[row, U1.shape[1]-1] = uniform.rvs(0,1)
+        U2[row, U2.shape[1]-1] = uniform.rvs(0,1)    
+    
     Z = np.sqrt(-2* np.log(U1)) * np.cos(2 * np.pi * U2)
     D_antithetic = mean + Z.T * std
     D_antithetic[np.where(D_antithetic<0)] = 0
@@ -216,9 +225,12 @@ def variance_reduction_antithetic(Data):
     var_A = np.var(profit_A)
     return var_A
 
+var_I = np.var(profit_I)
 var_A = variance_reduction_antithetic(Data)
-#var_C = variance_reduction_control(Data)
+variance_reduction_A = var_I - var_A
+var_C = variance_reduction_control(Data, D)
+variance_reduction_C = var_I - var_C
 
 print(f"The variance of the improved solution: {var_I}")
-print(f"The variance reduction of the improved solution using antithetic variates: {var_A}")
-# print(f"The variance reduction of the improved solution using control variates: {var_C}")
+print(f"The variance reduction of the improved solution using antithetic variates: {variance_reduction_A}")
+print(f"The variance reduction of the improved solution using control variates: {variance_reduction_C}")
