@@ -1,6 +1,7 @@
 import numpy as np
 from itertools import product
-MAD = 2/3 # equal to variance
+MAD = np.sqrt(2/3) # equal to standard deviation 
+#MAD = (2/3)**2 
 m = 5 # number of actions (arcs)
 n = 4 # number of states (vertices)
 mu = 1
@@ -25,9 +26,11 @@ def determineDuration3Point(alpha, i = n):
 # simplified verion of lemma 2 (for the chosen values it reduces back to this)   
 total = []
 for alpha in product(range(3), repeat=5):
-    total.append((1/3)**5 * determineDuration3Point(alpha)**5)
+    total.append((1/3)**5 * determineDuration3Point(alpha))
 
 sum(total)
+((1/3)**5)*243
+
 
 # (not the simplified version)
 # This should determine the supremum given in lemma 2 of the article (for the instance of example 2)
@@ -36,15 +39,15 @@ for alpha in product(range(3), repeat=5):
     prod = []
     criticalCut = determineDuration3Point(alpha)
     for a in range(5):
-        prod.append(p[alpha[a]] * criticalCut)
+        prod.append(p[alpha[a]])
     ### consider each alpha with same critical cut:
     ## To be implemented
-    total.append(np.prod(prod))
+    total.append(np.prod(prod)*criticalCut)
 
-p
+sum(total)
 
 
-sum(total) / len(total)
+
 
 
     
