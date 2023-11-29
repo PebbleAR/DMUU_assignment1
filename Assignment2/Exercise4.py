@@ -6,11 +6,10 @@ n = 4 # number of states (vertices)
 mu = 1
 l = 0
 u = 2
-p = [MAD / (1*(mu-l)), 1 - MAD / (2*(mu-l)) - MAD / (2*(u-mu)), MAD / (2*(u-mu))]
+p = [MAD / (2*(mu-l)), 1 - MAD / (2*(mu-l)) - MAD / (2*(u-mu)), MAD / (2*(u-mu))]
 tau = [l, mu, u]
 V = [1,2,3,4]
 A = [(1,2), (1,3), (2,3), (2,4), (3,4)]
-A.index((1,2))
 
 predecessor = {4: [2,3], 3:[1,2], 2: [1]}
 
@@ -22,8 +21,15 @@ def determineDuration3Point(alpha, i = n):
     else:
         val = [determineDuration3Point(alpha, q) + alpha[A.index((q,i))] for q in predecessor[i]]
         return max(val)
-    
 
+# simplified verion of lemma 2 (for the chosen values it reduces back to this)   
+total = []
+for alpha in product(range(3), repeat=5):
+    total.append((1/3)**5 * determineDuration3Point(alpha)**5)
+
+sum(total)
+
+# (not the simplified version)
 # This should determine the supremum given in lemma 2 of the article (for the instance of example 2)
 total = []
 for alpha in product(range(3), repeat=5):
@@ -35,7 +41,10 @@ for alpha in product(range(3), repeat=5):
     ## To be implemented
     total.append(np.prod(prod))
 
+p
 
+
+sum(total) / len(total)
 
 
     
