@@ -1,19 +1,22 @@
 import numpy as np
 from itertools import product
-MAD = np.sqrt(2/3) # equal to standard deviation 
-#MAD = (2/3)**2 
+## (SIMPLIFIED) DATA ##
+
+# comment out one of the MADs:
+# MAD = np.sqrt(2/3) 
+MAD = (2/3)
+
 m = 5 # number of actions (arcs)
 n = 4 # number of states (vertices)
 mu = 1
 l = 0
 u = 2
 p = [MAD / (2*(mu-l)), 1 - MAD / (2*(mu-l)) - MAD / (2*(u-mu)), MAD / (2*(u-mu))]
-tau = [l, mu, u]
-V = [1,2,3,4]
+nu = [mu - MAD, mu + MAD]
 A = [(1,2), (1,3), (2,3), (2,4), (3,4)]
-
 predecessor = {4: [2,3], 3:[1,2], 2: [1]}
 
+# Determine maximal path length recursively (pseudo code is in the report)
 def determineDuration3Point(alpha, i = n):
     """Recursive function to determine the critical path given weights alpha for the actions"""
     assert len(alpha) == m
@@ -23,28 +26,23 @@ def determineDuration3Point(alpha, i = n):
         val = [determineDuration3Point(alpha, q) + alpha[A.index((q,i))] for q in predecessor[i]]
         return max(val)
 
-# simplified verion of lemma 2 (for the chosen values it reduces back to this)   
-total = []
-for alpha in product(range(3), repeat=5):
-    total.append((1/3)**5 * determineDuration3Point(alpha))
-
-sum(total)
-((1/3)**5)*243
-
-
-# (not the simplified version)
-# This should determine the supremum given in lemma 2 of the article (for the instance of example 2)
+# Upperbound
 total = []
 for alpha in product(range(3), repeat=5):
     prod = []
     criticalCut = determineDuration3Point(alpha)
     for a in range(5):
         prod.append(p[alpha[a]])
-    ### consider each alpha with same critical cut:
-    ## To be implemented
     total.append(np.prod(prod)*criticalCut)
 
+print(f"Upperbound for MAD = {MAD}, is: {sum(total)}")
+
+# Lowerbound
+total = []
+for alpha in product(range(2), repeat=5):
+    total.append(((1/2)**5) * determineDuration3Point([nu[i] for i in alpha]))
 sum(total)
+print(f"Lowerbound for MAD = {MAD}, is: {sum(total)}")
 
 
 
