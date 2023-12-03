@@ -1,5 +1,6 @@
 import numpy as np
 from itertools import product
+import matplotlib.pyplot as plt
 ## (SIMPLIFIED) DATA ##
 
 # comment out one of the MADs:
@@ -16,6 +17,7 @@ nu = [mu - MAD, mu + MAD]
 A = [(1,2), (1,3), (2,3), (2,4), (3,4)]
 predecessor = {4: [2,3], 3:[1,2], 2: [1]}
 
+#%% Exercise 4
 # Determine maximal path length recursively (pseudo code is in the report)
 def determineDuration3Point(alpha, i = n):
     """Recursive function to determine the critical path given weights alpha for the actions"""
@@ -27,13 +29,17 @@ def determineDuration3Point(alpha, i = n):
         return max(val)
 
 # Upperbound
-total = []
-for alpha in product(range(3), repeat=5):
-    prod = []
-    criticalCut = determineDuration3Point(alpha)
-    for a in range(5):
-        prod.append(p[alpha[a]])
-    total.append(np.prod(prod)*criticalCut)
+def upperbound():
+    total = []
+    for alpha in product(range(3), repeat=5):
+        prod = []
+        criticalCut = determineDuration3Point(alpha)
+        for a in range(5):
+            prod.append(p[alpha[a]])
+        total.append(np.prod(prod)*criticalCut)
+    return total
+
+total = upperbound()
 
 print(f"Upperbound for MAD = {MAD}, is: {sum(total)}")
 
@@ -44,13 +50,24 @@ for alpha in product(range(2), repeat=5):
 sum(total)
 print(f"Lowerbound for MAD = {MAD}, is: {sum(total)}")
 
+#%% Exercise 5
+# Evaluate upperbounds for different values of MAD
+steps = 1000
+MAD_list = np.arange(1/steps,1,1/steps)
 
+results = []
+for MAD in MAD_list:
+    p = [MAD / (2*(mu-l)), 1 - MAD / (2*(mu-l)) - MAD / (2*(u-mu)), MAD / (2*(u-mu))]
+    nu = [mu - MAD, mu + MAD]
+    total = upperbound()
+    print(sum(total))
+    results.append(sum(total))
+    # print(results)    
 
+#%%
+plt.plot(MAD_list, results)
+plt.xlabel("MAD")
+plt.ylabel("Upperbound")
+plt.suptitle("Impact MAD on upperbound")
 
-
-    
-
-
-
-
-
+#%% Test
